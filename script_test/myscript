@@ -1,0 +1,12 @@
+#!/bin/bash
+
+# This scripts creates a numer of folders, and copies a setting file, than changes some settings
+
+for i in $(seq $1 $2 $3)
+do
+  mkdir $i
+  cd $i
+  cp ../sett.xml $i.xml
+  sed -i "s/Re=/Re=$i/" $i.xml
+  cd ../
+done
