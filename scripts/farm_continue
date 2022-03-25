@@ -1,0 +1,56 @@
+#!/bin/bash
+#will work in place it is called,
+#will work for bytes :)
+
+red=`tput setaf 1`
+green=`tput setaf 2`
+reset=`tput sgr0`
+
+echo Run Time set to $1
+echo Memory per core set to $2
+echo Task names will be ..._$3
+echo Condition file is $4
+echo Additional parameters $5 $6
+
+#for
+curr_dir="$(basename `pwd`)" 
+for case in `find -maxdepth 1  -mindepth 1 -type d`
+do
+    work_dir="$(basename "$case")"
+    cd $case
+    for case2 in `find -maxdepth 1  -mindepth 1 -type d`
+    do
+        cd $case2
+        if [[ -e "EnergyFile.mdl" ]]; then #file exist, see its length
+            nolines=$(cat EnergyFile.mdl |wc -l)
+            echo Testing the number of lines: $nolines
+            if (( $nolines > 100 )); then
+                echo "$(tput setaf 1)$(tput setab 2) $work_dir $case2 Will Not be restarted, see if converged, skipping the rest  $(tput sgr 0)"
+                pwd
+                cd ../
+                continue
+            fi
+            echo Testing the file age         
+            if [[ $(date +%s -r logs.log) -gt $(date +%s --date="10 min ago") ]]; then
+                echo "$(tput setaf 1)$(tput setab 2) logs.log is younger than 10min, skipping $(tput sgr 0)" 
+                pwd
+                cd ../
+                continue
+            fi
+        fi
+        echo "$(tput setaf 2)$(tput setab 1) $work_dir $case2 Will be restarted $(tput sgr 0)"
+            
+        Re="$(basename "$case2")"
+        jobname="${curr_dir}_${work_dir}_Re${Re}_${3}"
+        echo $jobname
+        cond_file="${4}${Re}.xml"   
+        echo $cond_file
+        sqsub -r $1 --mpp=$2 -j $jobname -o logs.log -q mpi -n 4 IncNavierStokesSolver -s geom.xml $cond_file $5 $6
+
+        pwd
+        cd ../
+    done
+    pwd
+    cd ../
+    echo ...Done
+done

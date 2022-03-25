@@ -1,0 +1,27 @@
+#!/bin/bash
+#will work in place it is called,
+#will work for bytes :)
+
+#for
+COUNTER1=0
+COUNTER2=0
+echo Checking Energy file
+for case in `find -type d -name "s0.*"`
+do
+    for case2 in `find $case -maxdepth 1 -mindepth 1 -type d`
+    do
+        file="${case2}/EnergyFile.mdl"
+        if [[ -e $file ]]; then
+            nolines=$(cat $file |wc -l)
+            if (( $nolines < 500 )); then
+                echo $file has only $nolines lines
+                let COUNTER1=COUNTER1+1
+            fi
+            continue
+        fi
+        echo $file has not run
+        let COUNTER2=COUNTER2+1
+    done
+done
+echo Found $COUNTER1 unconverged cases
+echo $COUNTER2 cases not run    

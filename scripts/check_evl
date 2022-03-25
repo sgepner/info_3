@@ -1,0 +1,34 @@
+#!/bin/bash
+
+COUNTER1=0
+COUNTER2=0
+COUNTER3=0
+UNONVERGED=" "
+echo Checking EVL files
+
+for case in `find -type d -name "s0.*"`
+do
+    for case2 in `find $case -maxdepth 1 -mindepth 1 -type d`
+    do
+        file="${case2}/geom_e.evl"
+        if [[ -e $file ]]; then
+            nolines=$(cat $file |wc -l)
+            if (( $nolines < 200 )); then
+                echo $file has only $nolines lines
+                let COUNTER1=COUNTER1+1
+                UNCONVERGED=$file$UNCONVERGED
+            else
+                echo $file Converged
+                let COUNTER3=COUNTER3+1
+            fi
+            continue
+        fi
+        echo $file has not run
+        let COUNTER2=COUNTER2+1
+    done
+done
+echo $COUNTER2 cases not run
+echo Found $COUNTER1 Unconverged cases
+echo Found $COUNTER3 Converged cases
+echo This is a list of unconverged files you might want to delete
+echo $UNCONVERGED

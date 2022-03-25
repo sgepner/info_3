@@ -1,0 +1,68 @@
+#!/bin/bash
+#will work in place it is called,
+#Will produce baseflows for all results in $1 using the same dir structure
+
+red=`tput setaf 1`
+reset=`tput sgr0`
+
+echo ""
+echo Will Work on results in $1
+ls $1
+
+echo Condition file used for baseflow is $2
+echo disturbance is $3
+Lz=$(echo "2.0/${4}*3.14159265359" | bc )
+echo Mu is set to $4 resulting in Lz $Lz
+echo "-------------------------------------------"
+
+#for 
+for case in `find "$1" -maxdepth 1  -mindepth 1 -type d`
+do
+    echo ""    
+    echo Working on results in $case
+    work_dir="$(basename "$case")"
+    echo Creating top dictionerry, $work_dir
+    mkdir $work_dir
+    cd $work_dir
+    pwd
+    for case2 in `find "$case" -maxdepth 1  -mindepth 1 -type d`
+    do
+        echo ""
+        echo Working on results in $case2
+        if [[ -e $case2/nostab ]]; then
+            echo $work_dir $case2 is Marked as No Stability!
+        else
+            work_dir2="$(basename "$case2")"
+            echo Creating dictionerry, $work_dir2
+            if [[ -e $work_dir2 ]]; then
+                echo $work_dir already exists in `pwd`, Skipping
+            else
+                mkdir $work_dir2
+                cd $work_dir2
+                pwd
+                cp $case2/geom.xml ./
+                cp -rf $case2/geom.fld geom2D.bse
+            	cp $3 ./geom3D_dist.fld
+                mpirun IncNavierStokesSolver geom.xml $2 --parameter Lz=$Lz
+                rc=$?
+                if [[ $rc != 0 ]]; then
+                    echo $?
+                    echo "$(tput setaf 1)$(tput setab 7) Nektar failed to produce base flow for $case2  $(tput sgr 0)"
+                    #exit $rc
+                else
+                    mv geom.fld geom3D_bse.fld
+                    #incomp_nektar_saw geom.xml $3
+                    #mv geom.fld geom3D_dist.bse
+                    mpirun FieldConvert -m addfld:fromfld=geom3D_bse.fld:scale=1 geom.xml geom3D_dist.fld geom3D.fld
+		    #mpirun FldAddFld 1 10 geom3D_bse.bse geom3D_dist.bse geom3D.bse
+                fi
+                cd ../
+                echo ""
+            fi
+        fi
+    done
+
+    cd ../
+    echo ...Done
+    echo ""
+done

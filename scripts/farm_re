@@ -1,0 +1,47 @@
+#!/bin/bash
+#will work in place it is called,
+#will work for bytes :)
+
+Re_start=$1
+Re_stop=$2
+Re_delta=$3
+Session_dir=$4
+nproc=$5
+#additional parameters $6 $7
+
+echo Starting with re_start: $Re_start calculate until re_stop $Re_stop, with re_step $Re_delta
+echo Session files in: $Session_dir
+echo Number of procceses: $nproc
+
+#start by calculating the re_start
+cd $Re_start
+echo Working in `pwd`
+cond_file="${Session_dir}${Re_start}.xml"
+echo Session file: $cond_file
+echo Additional parameters: $6 $7
+pynek $nproc geom.xml $cond_file $6 $7
+save_last_chk
+cd ../
+
+last_re=$Re_start
+Re_start=$((Re_start + Re_delta))
+
+#go on copping and calculating
+for Re in $(seq $Re_start $Re_delta $Re_stop)
+do
+    echo Working on $Re
+    rm -rf $Re
+    cp -rf $last_re $Re
+    cd $Re
+    echo Working in `pwd`
+    cond_file="${Session_dir}${Re}.xml"
+    echo Session file: $cond_file
+    echo Additional parameters: $6 $7
+    pynek $nproc geom.xml $cond_file $6 $7
+    save_last_chk
+    cd ../
+    last_re=$Re
+done
+
+    
+echo ...Done

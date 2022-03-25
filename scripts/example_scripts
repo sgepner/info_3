@@ -1,0 +1,7 @@
+## One liners - scripts I run directly in the command line
+
+while true; do ln -s /mnt/hyperion/nyadav/sat/f0.924/dense_evolve/*.chk ./; for i in {0..3000}; do if [ -f geom_$i.plt ]; then echo $i Exists; else mpirun -n 1 FieldConvert geom.xml dns.xml -m QCriterion -m vorticity geom_$i.chk geom_$i.plt; fi; done; sleep 100; done
+
+while true; do rsync -zarv --include="0.*" --include="*.plt" --include="*.mdl" --include="*.avg" --exclude="*" hyperion:hscratch/couette/f0.924/dense_evolve/ ./; sleep 50; done
+
+

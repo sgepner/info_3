@@ -1,0 +1,33 @@
+#!/bin/bash
+#will work in place it is called,
+#Will produce baseflows for all results in $1 using the same dir structure
+
+echo ""
+echo Will Work on results in $1
+ls $1
+echo "-------------------------------------------"
+
+#for 
+for case in `find "$1" -maxdepth 1  -mindepth 1 -type d`
+do
+    echo ""    
+    echo Working on results in $case
+    work_dir="$(basename "$case")"
+    cd $work_dir
+    pwd
+    for case2 in `find "$case" -maxdepth 1  -mindepth 1 -type d`
+    do
+        echo ""
+        echo Working on results in $case2
+        work_dir2="$(basename "$case2")"
+        cd $work_dir2
+        pwd
+        rm *.chk
+        cd ../
+        echo ""
+    done
+
+    cd ../
+    echo ...Done
+    echo ""
+done

@@ -1,0 +1,49 @@
+#!/bin/bash
+#will work in place it is called,
+#will work for bytes :)
+
+Re_start=500
+Re_stop=2500
+Re_delta=200
+
+msh_dir=$1
+echo Will Work on meshes in $1
+ls $msh_dir
+echo Use $2 as restart file
+
+echo Each work dir will contain results on Re numbers:
+for Re in $(seq $Re_start $Re_delta $Re_stop); do echo $Re; done
+
+
+#for 
+for case in `find "$msh_dir" -mindepth 1 -type d`
+do
+    work_dir="$(basename "$case")"
+    echo Creating, linking, working, $work_dir
+    mkdir $work_dir
+    cd $work_dir
+    pwd
+    for Re in $(seq $Re_start $Re_delta $Re_stop)
+    do
+        echo Creating work dir $Re
+        mkdir $Re
+        cd $Re
+        pwd
+        #rm geom.xml
+        cp $case/geom.xml ./
+        cp -rf $2 ./geom.fld
+        #jobname="${work_dir}_Re${Re}_${4}"
+        #echo $jobname
+        #Kinvis=$(echo "1.0/${Re}" | bc -l)
+        #echo $Kinvis
+        #cond_file="${5}${Re}.xml"   
+        #echo $cond_file
+        #sqsub -r $2 --mpp=$3 -j $jobname -o logs.log $6  geom.xml $cond_file
+        # --parameter Re=$Re --parameter Kinvis=$Kinvis
+        cd ../
+    done
+
+    cd ../
+    
+    echo ...Done
+done

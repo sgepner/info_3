@@ -1,0 +1,27 @@
+#!/bin/bash
+#will work in place it is called,
+#Restarts, tries to check if the last Re is stationary
+
+red=`tput setaf 1`
+reset=`tput sgr0`
+list=''
+
+for s in s0.*
+do
+    cd $s
+    re=`ls|sort -rn |head -n 1`
+#    echo S=$s, Re=$re
+#    tail $re/EnergyFile.mdl
+    E0=`tail -1 $re/EnergyFile.mdl |head -1 |awk '{print $2}'`
+    E10=`tail -10 $re/EnergyFile.mdl |head -1 |awk '{print $2}'`
+    echo $E0, $E10
+    if [ $E0 == $E10 ]; then
+        echo S=$s, Re=$re Stationary
+    else
+        echo -e "$(tput setaf 1)$(tput setab 7) S=$s, Re=$re '\t' Non Stationary!!!! $(tput sgr 0)"
+        tail $re/EnergyFile.mdl
+        list=$list\ $(basename `pwd`)/$re
+    fi
+    cd ../
+done
+echo $list

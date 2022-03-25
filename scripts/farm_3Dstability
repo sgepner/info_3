@@ -1,0 +1,47 @@
+#!/bin/bash
+#will work in place it is called,
+#will work for bytes :)
+
+echo Run Time set to $1
+echo Memory per core set to $2
+echo Task names will be ..._$3
+echo Condition files are at $4
+Lz=$(echo "2.0/${5}*3.14159265359" | bc -l)
+echo Mu is set to $5 resulting in Lz $Lz
+
+#for
+curr_dir="$(basename `pwd`)" 
+for case in `find -maxdepth 1  -mindepth 1 -type d`
+do
+    work_dir="$(basename "$case")"
+    cd $case
+    for case2 in `find -maxdepth 1  -mindepth 1 -type d`
+    do
+        cd $case2
+        Re="$(basename "$case2")"
+        jobname="${curr_dir}_${work_dir}_Re${Re}_${3}"
+        echo $jobname
+        cond_file="${4}${Re}.xml"   
+        echo $cond_file
+        if [[ -e "EnergyFile.mdl" ]]; then
+            nolines=$(cat EnergyFile.mdl |wc -l)
+            echo Testing the number of lines: $nolines
+            if (( $nolines > 599 )); then
+                echo "$(tput setaf 1)$(tput setab 2) $work_dir $case2 Will Not be restarted  $(tput sgr 0)"
+                pwd
+                cd ../
+                continue
+            fi
+        fi
+	sqsub -r $1 --mpp=$2 -j $jobname -o logs.log -q mpi -n 4 IncNavierStokesSolver geom.xml $cond_file --parameter Lz=$Lz 
+	#echo "sqsub -r $1 --mpp=$2 -j $jobname -o logs.log -q mpi -n 8 IncNavierStokesSolver geom.xml $cond_file --parameter Lz=$Lz"
+	#sqsub -r $1 --mpp=$2 -j $jobname -o logs.log IncNavierStokesSolver geom.xml $cond_file --parameter Lz=$Lz
+	#sqsub -r $1 --mpp=$2 -j $jobname -o logs.log IncNavierStokesSolver geom.xml $cond_file
+        echo Running
+        pwd
+        cd ../
+    done
+    pwd
+    cd ../
+    echo ...Done
+done
